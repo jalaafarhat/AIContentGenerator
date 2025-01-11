@@ -15,8 +15,12 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    trialPeriod: {
+      type: Number,
+      default: 3, //3 days
+    },
     trialActive: {
-      type: boolean,
+      type: Boolean,
       default: true,
     },
     trialExpires: {
@@ -50,5 +54,5 @@ const userSchema = new mongoose.Schema(
 );
 
 //! Compile to form the model
-const user = mongoose.mongo("User", userSchema);
+const User = mongoose.model("User", userSchema);
 module.exports = User;
