@@ -40,6 +40,32 @@ const register = asyncHandler(async (req, res) => {
 });
 
 //Login
+const login = asyncHandler(async (req, res) => {
+  const { email, password } = req.body;
+  //check for user email
+  const user = await User.findOne({ email });
+  if (!user) {
+    res.status(401);
+    throw new Error("invalid email or password");
+  }
+  //check for user password
+  const isMatch = await bcrypt.compare(password, user?.password);
+  if (!isMatch) {
+    res.status(401);
+    throw new Error("invalid email or password");
+  }
+  //Generate token (jwt)
+  //set the token into cookie (http only)
+
+  //send the response
+  res.json({
+    status: "success",
+    _if: user?._id,
+    message: "Login success",
+    username: user?.username,
+    email: user?.email,
+  });
+});
 
 //Logout
 
@@ -49,4 +75,5 @@ const register = asyncHandler(async (req, res) => {
 
 module.exports = {
   register,
+  login,
 };
