@@ -57,7 +57,7 @@ const login = asyncHandler(async (req, res) => {
   }
   //Generate token (jwt)
   const token = jwt.sign({ id: user?._id }, process.env.JWT_SECRET, {
-    expiresIn: "3d",
+    expiresIn: "3d", //expires in 3 days
   });
   //set the token into cookie (http only)
   res.cookie("token", token, {
@@ -69,7 +69,7 @@ const login = asyncHandler(async (req, res) => {
   //send the response
   res.json({
     status: "success",
-    _if: user?._id,
+    _id: user?._id,
     message: "Login success",
     username: user?.username,
     email: user?.email,
@@ -77,12 +77,29 @@ const login = asyncHandler(async (req, res) => {
 });
 
 //Logout
-
+const logout = asyncHandler(async (req, res) => {
+  res.cookie("token", "", { maxAge: 1 });
+  res.status(200).json({ message: "Logged out successfully" });
+});
 //Profile
-
+const userProfile = asyncHandler(async (req, res) => {
+  const id = "67829b67c77a7f7643439be2";
+  const user = await User.findById(id).select("-password");
+  if (user) {
+    res.status(200).json({
+      status: "success",
+      user,
+    });
+  } else {
+    res.status(404);
+    throw new Error("User not found");
+  }
+});
 //check user Auth status
 
 module.exports = {
   register,
   login,
+  logout,
+  userProfile,
 };
