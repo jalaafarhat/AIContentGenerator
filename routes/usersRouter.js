@@ -5,13 +5,13 @@ const {
   logout,
   userProfile,
 } = require("../controllers/UsersController");
-const isAuthinticated = require("../middlewares/isAuthinticated");
+const isAuthenticated = require("../middlewares/isAuthenticated");
 
 const usersRouter = express.Router();
 
 usersRouter.post("/register", register);
 usersRouter.post("/login", login);
 usersRouter.post("/logout", logout);
-usersRouter.get("/profile", isAuthinticated, userProfile);
+usersRouter.get("/profile", isAuthenticated, userProfile);
 
 module.exports = usersRouter;

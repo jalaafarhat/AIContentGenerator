@@ -1,8 +1,8 @@
 const asyncHandler = require("express-async-handler");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
-//isAuthinticated middleware
-const isAuthinticated = asyncHandler(async (req, res, next) => {
+//isAuthenticated middleware
+const isAuthenticated = asyncHandler(async (req, res, next) => {
   if (req.cookies.token) {
     //!verify the token
     const decoded = jwt.verify(req.cookies.token, process.env.JWT_SECRET); //the actual login user
@@ -16,4 +16,4 @@ const isAuthinticated = asyncHandler(async (req, res, next) => {
   }
 });
 
-module.exports = isAuthinticated;
+module.exports = isAuthenticated;
