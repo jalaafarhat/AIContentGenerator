@@ -5,6 +5,7 @@ const {
 const {
   shouldRenewSubscriptionPlan,
 } = require("../utils/shouldRenewSubscriptionPlan");
+const User = require("../models/User");
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 //stripe payment
 
@@ -27,7 +28,7 @@ const handleStripePayment = asyncHandler(async (req, res) => {
     //send the response
     res.json({
       clientSecret: paymentIntent?.client_secret,
-      oaymentId: paymentIntent?.id,
+      paymentId: paymentIntent?.id,
       metadata: paymentIntent?.metadata,
     });
   } catch (error) {
@@ -35,6 +36,84 @@ const handleStripePayment = asyncHandler(async (req, res) => {
     res.status(500).jsom({ error: error });
   }
 });
+
+//verify payment
+const verifyPayment = asyncHandler(async (req, res) => {
+  const { paymentId } = req.params;
+  try {
+    const paymentIntent = await stripe.paymentIntents.retrieve(paymentId);
+    if (paymentIntent.status === "succeeded") {
+      //get the info from meta data
+      const metadata = paymentIntent.metadata;
+      const subscriptionPlan = metadata.subscriptionPlan;
+      const userEmail = metadata?.userEmail;
+      const userId = metadata?.userId;
+
+      // find the user
+      const userFound = await user.findById(userId);
+
+      if (!userFound) {
+        return res
+          .status(404)
+          .json({ status: "false", message: "user not found" });
+      }
+      //get the payment details
+      const amount = paymentIntent?.amount / 100;
+      const currency = paymentIntent?.currency;
+      const paymentId = paymentIntent?.id;
+
+      //create the payment history
+      const newPayment = await Payment.create({
+        user: userId,
+        email: userEmail,
+        subscriptionPlan,
+        amount,
+        currency,
+        status: "success",
+        reference: paymentId,
+      });
+      //check for the sub plan
+      if (subscriptionPlan === "Premium") {
+        //update the user
+        const updatedUser = await User.findByIdAndUpdate(userId, {
+          subscriptionPlan,
+          trialPeriod: 0,
+          nextBillingDate: calculateNextBillingDate,
+          apiRequestCount: 0,
+          subscriptionPlan: "Premium",
+          monthlyRequestCount: 100,
+          $addToSet: { payments: newPayment?._id },
+        });
+        res.json({
+          status: true,
+          message: "payment verified, user updated",
+          updatedUser,
+        });
+      }
+      if (subscriptionPlan === "Basic") {
+        //update the user
+        const updatedUser = await User.findByIdAndUpdate(userId, {
+          subscriptionPlan,
+          trialPeriod: 0,
+          nextBillingDate: calculateNextBillingDate,
+          apiRequestCount: 0,
+          subscriptionPlan: "Basic",
+          monthlyRequestCount: 50,
+          $addToSet: { payments: newPayment?._id },
+        });
+        res.json({
+          status: true,
+          message: "payment verified, user updated",
+          updatedUser,
+        });
+      }
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error });
+  }
+});
+
 //handle free subscription
 const handleFreeSubscription = asyncHandler(async (req, res) => {
   //get the login user
@@ -81,4 +160,4 @@ const handleFreeSubscription = asyncHandler(async (req, res) => {
   }
 });
 
-module.exports = { handleStripePayment, handleFreeSubscription };
+module.exports = { handleStripePayment, handleFreeSubscription, verifyPayment };

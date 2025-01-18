@@ -30,7 +30,6 @@ const paymentSchema = new mongoose.Schema(
     },
     monthlyRequestCount: {
       type: Number,
-      required: true,
     },
   },
   {
