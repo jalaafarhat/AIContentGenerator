@@ -1,5 +1,6 @@
 const asyncHandler = require("express-async-handler");
 const axios = require("axios");
+const ContentHistory = require("../models/ContentHistory");
 const User = require("../models/User");
 
 //----OpenAI Controller----
@@ -13,7 +14,7 @@ const openAIController = asyncHandler(async (req, res) => {
       {
         model: "gpt-3.5-turbo-instruct",
         prompt,
-        max_tokens: 100,
+        max_tokens: 30,
       },
       {
         headers: {
