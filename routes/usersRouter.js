@@ -4,6 +4,7 @@ const {
   login,
   logout,
   userProfile,
+  checkAuth,
 } = require("../controllers/UsersController");
 const isAuthenticated = require("../middlewares/isAuthenticated");
 
@@ -13,5 +14,6 @@ usersRouter.post("/register", register);
 usersRouter.post("/login", login);
 usersRouter.post("/logout", logout);
 usersRouter.get("/profile", isAuthenticated, userProfile);
+usersRouter.get("/auth/check", isAuthenticated, checkAuth);
 
 module.exports = usersRouter;
